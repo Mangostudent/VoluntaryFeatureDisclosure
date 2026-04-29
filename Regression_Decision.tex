@@ -1,0 +1,139 @@
+\documentclass[11pt]{article}
+
+% ── Packages ────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Custom commands ───────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\langle #1,\, #2 \rangle}
+\newcommand{\T}{^{\top}}
+
+% ── Document ─────────────────────────────────────────────────────────────────
+\begin{document}
+
+\title{\textbf{Regression: Decision}\\[0.4em]
+       \large Notes Template}
+\author{}
+\date{}
+\maketitle
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Setup}
+
+% TODO: Describe the regression decision problem here.
+% Example prompts:
+%   - What is the input/output space?
+%   - What loss function is used?
+%   - What decision rule are we trying to derive?
+
+\begin{definition}[Regression Decision Problem]
+    % TODO: Fill in the formal definition.
+    Let $\mathcal{X} \subseteq \R^{d}$ be the input space and
+    $\mathcal{Y} \subseteq \R$ the output space.
+    Given a learned model $\hat{f}: \mathcal{X} \to \mathcal{Y}$,
+    the decision problem is to \ldots
+\end{definition}
+
+\subsection{Assumptions}
+
+\begin{enumerate}[label=\textbf{A\arabic*.}]
+    \item % TODO: State assumption 1.
+    \item % TODO: State assumption 2.
+    \item % TODO: Add further assumptions as needed.
+\end{enumerate}
+
+\subsection{Objective}
+
+% TODO: State the objective (e.g., minimise expected loss, maximise posterior, etc.)
+\[
+    % TODO: Replace with the actual objective.
+    \hat{y} \;=\; \arg\min_{y \in \mathcal{Y}} \; \mathcal{L}(y, \hat{f}(x))
+\]
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Derivation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The following derivation establishes the optimal decision rule step by step.
+
+% ── Step 1 ────────────────────────────────────────────────────────────────────
+\subsection{Step 1: [Title]}
+
+% TODO: Describe what this step accomplishes.
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 1.
+    \[
+        % placeholder
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Step 2 ────────────────────────────────────────────────────────────────────
+\subsection{Step 2: [Title]}
+
+% TODO: Describe what this step accomplishes.
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 2.
+    \begin{align}
+        % TODO: align environment for multi-line algebra.
+        &\text{(left-hand side)} \notag \\
+        &= \text{(right-hand side)} \label{eq:step2}
+    \end{align}
+\end{proof}
+
+% ── Step 3 ────────────────────────────────────────────────────────────────────
+\subsection{Step 3: [Title]}
+
+% TODO: Describe what this step accomplishes.
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 3.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Final Result ──────────────────────────────────────────────────────────────
+\subsection{Final Result}
+
+\begin{theorem}[Optimal Regression Decision Rule]
+    % TODO: State the final theorem.
+    Under assumptions \textbf{A1}--\textbf{A3}, the optimal decision rule is
+    \[
+        % TODO: Replace with the actual result.
+        \hat{y}^{*} \;=\; \hat{f}(x).
+    \]
+\end{theorem}
+
+\begin{proof}
+    % TODO: Combine the steps above into a complete proof.
+    Follows directly from Steps 1--3. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\end{document}

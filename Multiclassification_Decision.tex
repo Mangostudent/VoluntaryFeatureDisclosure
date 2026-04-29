@@ -1,0 +1,140 @@
+\documentclass[11pt]{article}
+
+% ── Packages ────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Custom commands ───────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\langle #1,\, #2 \rangle}
+\newcommand{\T}{^{\top}}
+\newcommand{\K}{K}  % number of classes
+
+% ── Document ─────────────────────────────────────────────────────────────────
+\begin{document}
+
+\title{\textbf{Multiclassification: Decision}\\[0.4em]
+       \large Notes Template}
+\author{}
+\date{}
+\maketitle
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Setup}
+
+% TODO: Describe the multiclass decision problem here.
+% Example prompts:
+%   - What is the input/output space?
+%   - How many classes K are there?
+%   - What is the loss function (0-1 loss, cross-entropy, …)?
+%   - What decision rule maps class posteriors to a predicted label?
+
+\begin{definition}[Multiclass Decision Problem]
+    % TODO: Fill in the formal definition.
+    Let $\mathcal{X} \subseteq \R^{d}$ be the input space and
+    $\mathcal{Y} = \{1, 2, \ldots, \K\}$ the label space with $\K \geq 2$ classes.
+    Given a probabilistic model $p(y \mid x)$,
+    the decision problem is to choose a label $\hat{y} \in \mathcal{Y}$ such that \ldots
+\end{definition}
+
+\subsection{Assumptions}
+
+\begin{enumerate}[label=\textbf{A\arabic*.}]
+    \item % TODO: State assumption 1 (e.g., access to class posteriors).
+    \item % TODO: State assumption 2 (e.g., loss structure).
+    \item % TODO: Add further assumptions as needed.
+\end{enumerate}
+
+\subsection{Objective}
+
+% TODO: State the decision objective (e.g., minimise expected loss / Bayes risk).
+\[
+    % TODO: Replace with the actual decision rule.
+    \hat{y} \;=\; \arg\max_{k \in \mathcal{Y}} \; p(y = k \mid x)
+\]
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Derivation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The following derivation establishes the optimal multiclass decision rule
+step by step.
+
+% ── Step 1 ────────────────────────────────────────────────────────────────────
+\subsection{Step 1: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., define the Bayes risk).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 1.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Step 2 ────────────────────────────────────────────────────────────────────
+\subsection{Step 2: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., expand the risk over classes).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 2.
+    \begin{align}
+        R(\hat{y}) &= \E_{x}\!\left[\sum_{k=1}^{\K} \mathcal{L}(\hat{y}, k)\, p(y=k \mid x)\right] \notag \\
+                   &= \text{(simplify)} \label{eq:step2}
+    \end{align}
+\end{proof}
+
+% ── Step 3 ────────────────────────────────────────────────────────────────────
+\subsection{Step 3: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., minimise pointwise over x).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 3.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Final Result ──────────────────────────────────────────────────────────────
+\subsection{Final Result}
+
+\begin{theorem}[Optimal Multiclass Decision Rule]
+    % TODO: State the final theorem.
+    Under assumptions \textbf{A1}--\textbf{A3} and a 0-1 loss,
+    the Bayes-optimal decision rule is
+    \[
+        % TODO: Replace with the actual result.
+        \hat{y}^{*}(x) \;=\; \arg\max_{k \in \{1,\ldots,\K\}} \; p(y = k \mid x).
+    \]
+\end{theorem}
+
+\begin{proof}
+    Follows directly from Steps 1--3. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\end{document}

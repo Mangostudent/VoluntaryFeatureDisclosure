@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+
+% ── Packages ────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Custom commands ───────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\langle #1,\, #2 \rangle}
+\newcommand{\T}{^{\top}}
+\newcommand{\K}{K}  % number of classes
+\DeclareMathOperator{\softmax}{softmax}
+
+% ── Document ─────────────────────────────────────────────────────────────────
+\begin{document}
+
+\title{\textbf{Multiclass: Learning}\\[0.4em]
+       \large Notes Template}
+\author{}
+\date{}
+\maketitle
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Setup}
+
+% TODO: Describe the multiclass learning problem here.
+% Example prompts:
+%   - What is the model family (softmax regression, neural net, …)?
+%   - What training data / likelihood model is assumed?
+%   - What optimisation criterion is used (MLE, cross-entropy minimisation, …)?
+
+\begin{definition}[Multiclass Learning Problem]
+    % TODO: Fill in the formal definition.
+    Given a training dataset
+    $\mathcal{D} = \{(x^{(i)}, y^{(i)})\}_{i=1}^{n}$
+    with $x^{(i)} \in \R^{d}$ and $y^{(i)} \in \{1, \ldots, \K\}$,
+    the learning problem is to find parameters $\theta$ such that \ldots
+\end{definition}
+
+\subsection{Assumptions}
+
+\begin{enumerate}[label=\textbf{A\arabic*.}]
+    \item % TODO: State assumption 1 (e.g., parametric model for $p(y \mid x;\theta)$).
+    \item % TODO: State assumption 2 (e.g., i.i.d.\ samples).
+    \item % TODO: Add further assumptions as needed.
+\end{enumerate}
+
+\subsection{Objective}
+
+% TODO: State the learning objective (e.g., maximum likelihood / cross-entropy loss).
+\[
+    % TODO: Replace with the actual objective.
+    \hat{\theta} \;=\; \arg\min_{\theta} \;
+        -\sum_{i=1}^{n} \log p\!\left(y^{(i)} \mid x^{(i)};\, \theta\right)
+\]
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Derivation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The following derivation establishes the optimal multiclass learning algorithm
+step by step.
+
+% ── Step 1 ────────────────────────────────────────────────────────────────────
+\subsection{Step 1: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., write out the joint likelihood).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 1.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Step 2 ────────────────────────────────────────────────────────────────────
+\subsection{Step 2: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., take the log and simplify).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 2.
+    \begin{align}
+        \ell(\theta) &= \sum_{i=1}^{n} \log p\!\left(y^{(i)} \mid x^{(i)};\,\theta\right) \notag \\
+                     &= \text{(expand using model definition)} \label{eq:step2}
+    \end{align}
+\end{proof}
+
+% ── Step 3 ────────────────────────────────────────────────────────────────────
+\subsection{Step 3: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., compute the gradient w.r.t.\ $\theta$).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 3.
+    \[
+        \nabla_{\theta}\, \ell(\theta) \;=\; \text{(gradient expression)}
+    \]
+\end{proof}
+
+% ── Step 4 ────────────────────────────────────────────────────────────────────
+\subsection{Step 4: [Title]}
+
+% TODO: Describe what this step accomplishes
+%       (e.g., derive the gradient update rule / show convexity).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 4.
+    \[
+        \theta \;\leftarrow\; \theta - \eta\, \nabla_{\theta}\, \ell(\theta)
+        \quad \text{(placeholder update rule)}
+    \]
+\end{proof}
+
+% ── Final Result ──────────────────────────────────────────────────────────────
+\subsection{Final Result}
+
+\begin{theorem}[Optimal Multiclass Learner]
+    % TODO: State the final theorem.
+    Under assumptions \textbf{A1}--\textbf{A3},
+    the maximum-likelihood parameter estimate satisfies
+    \[
+        % TODO: Replace with the actual result (e.g., gradient condition, closed form).
+        \nabla_{\theta}\, \ell\!\left(\hat{\theta}^{*}\right) \;=\; \mathbf{0}.
+    \]
+\end{theorem}
+
+\begin{proof}
+    Follows directly from Steps 1--4. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\end{document}

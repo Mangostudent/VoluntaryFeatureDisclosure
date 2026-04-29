@@ -1,0 +1,151 @@
+\documentclass[11pt]{article}
+
+% ── Packages ────────────────────────────────────────────────────────────────
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{parskip}
+
+% ── Theorem environments ─────────────────────────────────────────────────────
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% ── Custom commands ───────────────────────────────────────────────────────────
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\langle #1,\, #2 \rangle}
+\newcommand{\T}{^{\top}}
+
+% ── Document ─────────────────────────────────────────────────────────────────
+\begin{document}
+
+\title{\textbf{Regression: Learning}\\[0.4em]
+       \large Notes Template}
+\author{}
+\date{}
+\maketitle
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Problem}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Setup}
+
+% TODO: Describe the regression learning problem here.
+% Example prompts:
+%   - What is the hypothesis class?
+%   - What training data / likelihood model is assumed?
+%   - What optimisation criterion is used (MLE, MAP, ERM, …)?
+
+\begin{definition}[Regression Learning Problem]
+    % TODO: Fill in the formal definition.
+    Given a training dataset
+    $\mathcal{D} = \{(x^{(i)}, y^{(i)})\}_{i=1}^{n}$
+    with $x^{(i)} \in \R^{d}$ and $y^{(i)} \in \R$,
+    the learning problem is to find a parameter vector $\theta$ such that \ldots
+\end{definition}
+
+\subsection{Assumptions}
+
+\begin{enumerate}[label=\textbf{A\arabic*.}]
+    \item % TODO: State assumption 1 (e.g., noise model).
+    \item % TODO: State assumption 2 (e.g., model family).
+    \item % TODO: Add further assumptions as needed.
+\end{enumerate}
+
+\subsection{Objective}
+
+% TODO: State the learning objective (e.g., empirical risk, negative log-likelihood).
+\[
+    % TODO: Replace with the actual objective.
+    \hat{\theta} \;=\; \arg\min_{\theta} \; \frac{1}{n}\sum_{i=1}^{n}
+        \mathcal{L}\!\left(y^{(i)},\; f_{\theta}(x^{(i)})\right)
+\]
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Derivation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The following derivation establishes the optimal learning algorithm step by step.
+
+% ── Step 1 ────────────────────────────────────────────────────────────────────
+\subsection{Step 1: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., write out the likelihood).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 1.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Step 2 ────────────────────────────────────────────────────────────────────
+\subsection{Step 2: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., take the log, expand squares).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 2.
+    \begin{align}
+        &\text{(left-hand side)} \notag \\
+        &= \text{(right-hand side)} \label{eq:step2}
+    \end{align}
+\end{proof}
+
+% ── Step 3 ────────────────────────────────────────────────────────────────────
+\subsection{Step 3: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., take gradient and set to zero).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 3.
+    \[
+        \nabla_{\theta}\; \mathcal{L}(\theta) \;=\; \mathbf{0}
+        \quad \Longrightarrow \quad
+        \text{(closed-form solution or gradient update)}
+    \]
+\end{proof}
+
+% ── Step 4 ────────────────────────────────────────────────────────────────────
+\subsection{Step 4: [Title]}
+
+% TODO: Describe what this step accomplishes (e.g., verify the solution is a minimum).
+
+\begin{proof}
+    % TODO: Fill in the proof for Step 4.
+    \[
+        \text{(derivation goes here)}
+    \]
+\end{proof}
+
+% ── Final Result ──────────────────────────────────────────────────────────────
+\subsection{Final Result}
+
+\begin{theorem}[Optimal Regression Learner]
+    % TODO: State the final theorem.
+    Under assumptions \textbf{A1}--\textbf{A3}, the optimal parameter estimate is
+    \[
+        % TODO: Replace with the actual result (e.g., OLS, ridge solution).
+        \hat{\theta}^{*} \;=\; \left(X\T X\right)^{-1} X\T y.
+    \]
+\end{theorem}
+
+\begin{proof}
+    Follows directly from Steps 1--4. \qed
+\end{proof}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\end{document}

@@ -30,7 +30,7 @@
 \begin{document}
 
 \title{\textbf{Regression: Learning}\\[0.4em]
-       \large Notes Template}
+       \large A Self-Sufficient Reference}
 \author{}
 \date{}
 \maketitle
@@ -38,40 +38,113 @@
 \newpage
 
 % ─────────────────────────────────────────────────────────────────────────────
+\section{Background and Motivation}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\textbf{What is supervised learning?}
+In supervised learning we are given a labelled dataset and want to find a
+function that maps inputs to outputs.  When the output is a real number (rather
+than a discrete class label) the task is called \emph{regression}.
+
+\textbf{Running example.}
+Suppose we want to predict a student's exam score $y \in \R$ from features
+such as hours studied, prior GPA, and sleep hours, collected in a vector
+$x \in \R^{d}$.  We observe $n$ such pairs and want to learn the mapping.
+
+% ─────────────────────────────────────────────────────────────────────────────
 \section{Problem}
 % ─────────────────────────────────────────────────────────────────────────────
 
 \subsection{Setup}
 
-% TODO: Describe the regression learning problem here.
-% Example prompts:
-%   - What is the hypothesis class?
-%   - What training data / likelihood model is assumed?
-%   - What optimisation criterion is used (MLE, MAP, ERM, …)?
+We work in the standard supervised-learning framework.
 
 \begin{definition}[Regression Learning Problem]
-    % TODO: Fill in the formal definition.
-    Given a training dataset
-    $\mathcal{D} = \{(x^{(i)}, y^{(i)})\}_{i=1}^{n}$
-    with $x^{(i)} \in \R^{d}$ and $y^{(i)} \in \R$,
-    the learning problem is to find a parameter vector $\theta$ such that \ldots
+    Let $\mathcal{X} = \R^{d}$ be the \emph{input space} and
+    $\mathcal{Y} = \R$ the \emph{output space}.
+    We are given a training dataset
+    \[
+        \mathcal{D} = \bigl\{(x^{(i)},\, y^{(i)})\bigr\}_{i=1}^{n},
+        \quad x^{(i)} \in \R^{d},\quad y^{(i)} \in \R.
+    \]
+    We restrict to the \emph{linear hypothesis class}
+    \[
+        \mathcal{H} = \bigl\{f_{\theta} : x \mapsto \theta\T x \;\big|\; \theta \in \R^{d}\bigr\},
+    \]
+    where the bias term is absorbed by appending a constant feature $1$ to each
+    input so that $x \in \R^{d}$ already includes it.
+
+    The \emph{regression learning problem} is to find a parameter vector
+    $\hat{\theta} \in \R^{d}$ that best explains the observed data under a
+    chosen criterion.
 \end{definition}
+
+\begin{remark}
+    The design matrix $X \in \R^{n \times d}$ stacks the training inputs as
+    rows: $X_{ij} = x^{(i)}_{j}$.  The response vector $y = (y^{(1)},\ldots,y^{(n)})\T
+    \in \R^{n}$ stacks all labels.  With this notation the vector of predictions
+    is $X\theta \in \R^{n}$.
+\end{remark}
 
 \subsection{Assumptions}
 
 \begin{enumerate}[label=\textbf{A\arabic*.}]
-    \item % TODO: State assumption 1 (e.g., noise model).
-    \item % TODO: State assumption 2 (e.g., model family).
-    \item % TODO: Add further assumptions as needed.
+    \item \textbf{Linear generative model.}
+          There exists a true parameter $\theta^{*} \in \R^{d}$ such that
+          \[
+              y^{(i)} \;=\; {\theta^{*}}\T x^{(i)} + \epsilon^{(i)},
+              \qquad i = 1,\ldots,n,
+          \]
+          where $\epsilon^{(i)}$ is a random noise term.
+
+    \item \textbf{Gaussian, homoscedastic noise.}
+          The noise terms are independent and identically distributed:
+          \[
+              \epsilon^{(i)} \;\overset{\text{i.i.d.}}{\sim}\; \mathcal{N}(0,\, \sigma^{2}),
+              \qquad \sigma^{2} > 0 \text{ known (or treated as fixed)}.
+          \]
+          Equivalently, $y^{(i)} \mid x^{(i)};\,\theta \;\sim\; \mathcal{N}\!\bigl(\theta\T x^{(i)},\,\sigma^{2}\bigr)$.
+
+    \item \textbf{i.i.d.\ samples.}
+          The pairs $(x^{(i)}, y^{(i)})$ are drawn independently from the same
+          joint distribution.  We treat $x^{(i)}$ as fixed (conditioned on).
+
+    \item \textbf{Full column rank.}
+          The design matrix $X$ has full column rank, i.e.,
+          $\operatorname{rank}(X) = d$.
+          This guarantees that $X\T X \in \R^{d \times d}$ is invertible.
 \end{enumerate}
 
 \subsection{Objective}
 
-% TODO: State the learning objective (e.g., empirical risk, negative log-likelihood).
+Under assumptions \textbf{A1}--\textbf{A3} the natural criterion is
+\emph{Maximum Likelihood Estimation} (MLE): choose $\theta$ to maximise the
+probability of observing the training labels given the inputs.
+
 \[
-    % TODO: Replace with the actual objective.
-    \hat{\theta} \;=\; \arg\min_{\theta} \; \frac{1}{n}\sum_{i=1}^{n}
-        \mathcal{L}\!\left(y^{(i)},\; f_{\theta}(x^{(i)})\right)
+    \hat{\theta}
+    \;=\;
+    \arg\max_{\theta \in \R^{d}}
+    \prod_{i=1}^{n} p\!\left(y^{(i)} \mid x^{(i)};\,\theta\right)
+    \;=\;
+    \arg\max_{\theta}
+    \prod_{i=1}^{n}
+    \frac{1}{\sqrt{2\pi}\,\sigma}
+    \exp\!\left(-\frac{\bigl(y^{(i)} - \theta\T x^{(i)}\bigr)^{2}}{2\sigma^{2}}\right).
+\]
+
+As shown in the derivation below, this is equivalent to minimising the
+\emph{residual sum of squares} (RSS), which is the empirical risk under
+squared loss:
+\[
+    \hat{\theta}
+    \;=\;
+    \arg\min_{\theta \in \R^{d}}
+    \sum_{i=1}^{n}
+    \Bigl(y^{(i)} - \theta\T x^{(i)}\Bigr)^{2}
+    \;=\;
+    \arg\min_{\theta}
+    \norm{y - X\theta}^{2}.
 \]
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -81,71 +154,131 @@
 The following derivation establishes the optimal learning algorithm step by step.
 
 % ── Step 1 ────────────────────────────────────────────────────────────────────
-\subsection{Step 1: [Title]}
+\subsection{Step 1: Write Out the Likelihood}
 
-% TODO: Describe what this step accomplishes (e.g., write out the likelihood).
-
-\begin{proof}
-    % TODO: Fill in the proof for Step 1.
-    \[
-        \text{(derivation goes here)}
-    \]
-\end{proof}
+Under \textbf{A2}, the conditional density of a single label is Gaussian:
+\[
+    p\!\left(y^{(i)} \mid x^{(i)};\,\theta\right)
+    \;=\;
+    \frac{1}{\sqrt{2\pi}\,\sigma}
+    \exp\!\left(-\frac{\bigl(y^{(i)} - \theta\T x^{(i)}\bigr)^{2}}{2\sigma^{2}}\right).
+\]
+By \textbf{A3} (independence), the joint likelihood over all $n$ samples is:
+\[
+    L(\theta)
+    \;=\;
+    \prod_{i=1}^{n} p\!\left(y^{(i)} \mid x^{(i)};\,\theta\right)
+    \;=\;
+    \left(\frac{1}{\sqrt{2\pi}\,\sigma}\right)^{\!n}
+    \exp\!\left(-\frac{1}{2\sigma^{2}}
+        \sum_{i=1}^{n}\bigl(y^{(i)} - \theta\T x^{(i)}\bigr)^{2}
+    \right).
+\]
 
 % ── Step 2 ────────────────────────────────────────────────────────────────────
-\subsection{Step 2: [Title]}
+\subsection{Step 2: Convert to Log-Likelihood and Identify the Objective}
 
-% TODO: Describe what this step accomplishes (e.g., take the log, expand squares).
+Taking the natural logarithm (a strictly increasing transformation that
+preserves the argmax):
 
-\begin{proof}
-    % TODO: Fill in the proof for Step 2.
-    \begin{align}
-        &\text{(left-hand side)} \notag \\
-        &= \text{(right-hand side)} \label{eq:step2}
-    \end{align}
-\end{proof}
+\begin{align}
+    \ell(\theta)
+    &\;=\; \log L(\theta) \notag \\
+    &\;=\; -\frac{n}{2}\log(2\pi\sigma^{2})
+           \;-\; \frac{1}{2\sigma^{2}}
+                 \sum_{i=1}^{n}\bigl(y^{(i)} - \theta\T x^{(i)}\bigr)^{2}.
+    \label{eq:loglik}
+\end{align}
+
+Because $-n\log(2\pi\sigma^{2})/2$ does not depend on $\theta$ and
+$1/(2\sigma^{2}) > 0$, maximising $\ell(\theta)$ over $\theta$ is equivalent to
+minimising the residual sum of squares:
+\[
+    J(\theta)
+    \;\coloneqq\;
+    \sum_{i=1}^{n}\bigl(y^{(i)} - \theta\T x^{(i)}\bigr)^{2}
+    \;=\;
+    \norm{y - X\theta}^{2}.
+\]
 
 % ── Step 3 ────────────────────────────────────────────────────────────────────
-\subsection{Step 3: [Title]}
+\subsection{Step 3: Expand the Objective and Compute the Gradient}
 
-% TODO: Describe what this step accomplishes (e.g., take gradient and set to zero).
+Expanding $J(\theta) = \norm{y - X\theta}^{2}$ in matrix form:
 
-\begin{proof}
-    % TODO: Fill in the proof for Step 3.
-    \[
-        \nabla_{\theta}\; \mathcal{L}(\theta) \;=\; \mathbf{0}
-        \quad \Longrightarrow \quad
-        \text{(closed-form solution or gradient update)}
-    \]
-\end{proof}
+\begin{align}
+    J(\theta)
+    &\;=\; (y - X\theta)\T(y - X\theta) \notag \\
+    &\;=\; y\T y \;-\; 2\,\theta\T X\T y \;+\; \theta\T X\T X\,\theta.
+    \label{eq:Jexpanded}
+\end{align}
+
+$J$ is a quadratic (bowl-shaped) function of $\theta$.  Its gradient with
+respect to $\theta$ is:
+\[
+    \nabla_{\theta}\, J(\theta)
+    \;=\; -2\,X\T y \;+\; 2\,X\T X\,\theta.
+\]
+
+Setting the gradient to zero yields the \emph{normal equations}:
+\[
+    X\T X\,\theta \;=\; X\T y. \tag{Normal Equations}
+\]
 
 % ── Step 4 ────────────────────────────────────────────────────────────────────
-\subsection{Step 4: [Title]}
+\subsection{Step 4: Solve the Normal Equations and Verify Global Minimality}
 
-% TODO: Describe what this step accomplishes (e.g., verify the solution is a minimum).
+\textbf{Solving.}
+By assumption \textbf{A4}, $X\T X$ is invertible.  Multiplying both sides of
+the normal equations by $(X\T X)^{-1}$ gives the unique solution:
+\[
+    \hat{\theta} \;=\; (X\T X)^{-1}\, X\T y.
+\]
 
-\begin{proof}
-    % TODO: Fill in the proof for Step 4.
-    \[
-        \text{(derivation goes here)}
-    \]
-\end{proof}
+\textbf{Verifying the solution is a global minimum.}
+The Hessian of $J$ is:
+\[
+    \nabla^{2}_{\theta}\, J(\theta)
+    \;=\; 2\,X\T X.
+\]
+Under \textbf{A4}, $X\T X$ is positive definite (for any non-zero $v$,
+$v\T X\T X v = \norm{Xv}^{2} > 0$).  A positive-definite Hessian means $J$ is
+strictly convex, so $\hat{\theta}$ is the unique global minimiser of $J$.
 
 % ── Final Result ──────────────────────────────────────────────────────────────
 \subsection{Final Result}
 
-\begin{theorem}[Optimal Regression Learner]
-    % TODO: State the final theorem.
-    Under assumptions \textbf{A1}--\textbf{A3}, the optimal parameter estimate is
+\begin{theorem}[Ordinary Least Squares Estimator]
+    Under assumptions \textbf{A1}--\textbf{A4}, the unique maximum-likelihood
+    (equivalently, minimum-RSS) parameter estimate is the
+    \emph{Ordinary Least Squares} (OLS) estimator:
     \[
-        % TODO: Replace with the actual result (e.g., OLS, ridge solution).
-        \hat{\theta}^{*} \;=\; \left(X\T X\right)^{-1} X\T y.
+        \hat{\theta}^{*}
+        \;=\;
+        \bigl(X\T X\bigr)^{-1} X\T y.
     \]
 \end{theorem}
 
 \begin{proof}
-    Follows directly from Steps 1--4. \qed
+    Follows directly from Steps 1--4: the MLE objective reduces to minimising
+    $J(\theta) = \norm{y - X\theta}^{2}$ (Steps~1--2); the gradient of $J$ set
+    to zero yields the normal equations (Step~3); the unique solution is
+    $(X\T X)^{-1}X\T y$, which is a global minimum because the Hessian is
+    positive definite under \textbf{A4} (Step~4). \qed
 \end{proof}
+
+\begin{remark}[Geometric Interpretation]
+    The vector $\hat{y} = X\hat{\theta}^{*} = X(X\T X)^{-1}X\T y$ is the
+    orthogonal projection of $y$ onto the column space of $X$.  The OLS
+    solution minimises the Euclidean distance between $y$ and any vector in
+    $\operatorname{col}(X)$.
+\end{remark}
+
+\begin{remark}[Gauss--Markov Theorem]
+    Under \textbf{A1}--\textbf{A3} (without requiring normality), the OLS
+    estimator is the \emph{Best Linear Unbiased Estimator} (BLUE): among all
+    linear unbiased estimators of $\theta^{*}$, it has the smallest variance.
+\end{remark}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \end{document}

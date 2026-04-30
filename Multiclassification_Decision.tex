@@ -31,7 +31,7 @@
 \begin{document}
 
 \title{\textbf{Multiclassification: Decision}\\[0.4em]
-       \large Notes Template}
+       \large Optimal Decision Rule under 0-1 Loss}
 \author{}
 \date{}
 \maketitle
@@ -44,35 +44,47 @@
 
 \subsection{Setup}
 
-% TODO: Describe the multiclass decision problem here.
-% Example prompts:
-%   - What is the input/output space?
-%   - How many classes K are there?
-%   - What is the loss function (0-1 loss, cross-entropy, …)?
-%   - What decision rule maps class posteriors to a predicted label?
+We observe a feature vector $x \in \mathcal{X} \subseteq \R^{d}$ and wish to
+assign it one of $K \geq 2$ discrete labels from
+$\mathcal{Y} = \{1, 2, \ldots, K\}$.
+A probabilistic model supplies the class-posterior distribution
+$p(y = k \mid x)$ for each class $k$.
 
 \begin{definition}[Multiclass Decision Problem]
-    % TODO: Fill in the formal definition.
-    Let $\mathcal{X} \subseteq \R^{d}$ be the input space and
-    $\mathcal{Y} = \{1, 2, \ldots, \K\}$ the label space with $\K \geq 2$ classes.
-    Given a probabilistic model $p(y \mid x)$,
-    the decision problem is to choose a label $\hat{y} \in \mathcal{Y}$ such that \ldots
+    Let $\mathcal{X} \subseteq \R^{d}$ be the feature space and
+    $\mathcal{Y} = \{1, 2, \ldots, K\}$ the label space with $K \geq 2$ classes.
+    A \emph{decision rule} is any measurable function $h : \mathcal{X} \to \mathcal{Y}$.
+    The \emph{expected 0-1 loss} (Bayes risk) of $h$ is
+    \[
+        R(h) \;=\; \E_{(x,y)}\!\bigl[\mathbf{1}\{h(x) \neq y\}\bigr],
+    \]
+    where the expectation is taken over the joint distribution $p(x, y)$.
+    The goal is to find the rule $h^{*}$ that minimises $R(h)$.
 \end{definition}
 
 \subsection{Assumptions}
 
 \begin{enumerate}[label=\textbf{A\arabic*.}]
-    \item % TODO: State assumption 1 (e.g., access to class posteriors).
-    \item % TODO: State assumption 2 (e.g., loss structure).
-    \item % TODO: Add further assumptions as needed.
+    \item \textbf{Known posteriors.} The true class-posterior probabilities
+          $p(y = k \mid x)$ are available for all $k \in \mathcal{Y}$ and every $x$.
+    \item \textbf{0-1 loss.} The loss incurred for predicting label $\hat{y}$ when the
+          true label is $y$ is
+          $\mathcal{L}(\hat{y},\, y) = \mathbf{1}\{\hat{y} \neq y\}$.
+    \item \textbf{Proper probability model.} For every $x$,
+          $\sum_{k=1}^{K} p(y = k \mid x) = 1$ and $p(y = k \mid x) \geq 0$.
 \end{enumerate}
+
+\subsection{Question}
+
+\emph{Given access to the class posteriors $p(y = k \mid x)$, what decision rule
+$h^{*} : \mathcal{X} \to \mathcal{Y}$ minimises the expected 0-1 loss $R(h)$?}
 
 \subsection{Objective}
 
-% TODO: State the decision objective (e.g., minimise expected loss / Bayes risk).
+Find $h^{*}$ such that
 \[
-    % TODO: Replace with the actual decision rule.
-    \hat{y} \;=\; \arg\max_{k \in \mathcal{Y}} \; p(y = k \mid x)
+    h^{*} \;=\; \arg\min_{h\,:\,\mathcal{X}\to\mathcal{Y}} R(h)
+             \;=\; \arg\min_{h} \;\E_{(x,y)}\!\bigl[\mathbf{1}\{h(x) \neq y\}\bigr].
 \]
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -83,57 +95,85 @@ The following derivation establishes the optimal multiclass decision rule
 step by step.
 
 % ── Step 1 ────────────────────────────────────────────────────────────────────
-\subsection{Step 1: [Title]}
+\subsection{Step 1: Decompose the Bayes Risk via the Law of Total Expectation}
 
-% TODO: Describe what this step accomplishes (e.g., define the Bayes risk).
+The 0-1 risk $R(h)$ can be decomposed by first conditioning on $x$ and then
+averaging over the marginal $p(x)$:
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 1.
-    \[
-        \text{(derivation goes here)}
-    \]
+    \begin{align}
+        R(h)
+        &= \E_{(x,y)}\!\bigl[\mathbf{1}\{h(x) \neq y\}\bigr] \notag \\
+        &= \E_{x}\!\Bigl[\E_{y \mid x}\!\bigl[\mathbf{1}\{h(x) \neq y\}\bigr]\Bigr].
+        \label{eq:step1}
+    \end{align}
+    Because the outer expectation $\E_{x}[\cdot]$ is non-negative and independent
+    of the choice of $h$ for any fixed $x$, minimising $R(h)$ is equivalent to
+    minimising the inner conditional expectation \emph{pointwise} for each $x$.
 \end{proof}
 
 % ── Step 2 ────────────────────────────────────────────────────────────────────
-\subsection{Step 2: [Title]}
+\subsection{Step 2: Expand the Conditional Expected Loss for a Fixed $x$}
 
-% TODO: Describe what this step accomplishes (e.g., expand the risk over classes).
+For a fixed $x$, the decision rule assigns a single label $h(x) = j$ for some
+$j \in \mathcal{Y}$.  The conditional expected 0-1 loss at that point is:
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 2.
     \begin{align}
-        R(\hat{y}) &= \E_{x}\!\left[\sum_{k=1}^{\K} \mathcal{L}(\hat{y}, k)\, p(y=k \mid x)\right] \notag \\
-                   &= \text{(simplify)} \label{eq:step2}
+        \E_{y \mid x}\!\bigl[\mathbf{1}\{h(x) \neq y\}\bigr]
+        &= \sum_{k=1}^{K} \mathbf{1}\{j \neq k\}\, p(y = k \mid x) \notag \\
+        &= 1 - p(y = j \mid x).
+        \label{eq:step2}
     \end{align}
+    The second equality uses $\sum_{k} p(y=k\mid x) = 1$ (Assumption \textbf{A3}),
+    so $\sum_{k \neq j} p(y=k\mid x) = 1 - p(y=j\mid x)$.
 \end{proof}
 
 % ── Step 3 ────────────────────────────────────────────────────────────────────
-\subsection{Step 3: [Title]}
+\subsection{Step 3: Minimise Pointwise over $x$}
 
-% TODO: Describe what this step accomplishes (e.g., minimise pointwise over x).
+Since $1 - p(y = j \mid x)$ is minimised by maximising $p(y = j \mid x)$ over
+$j$, the optimal label for each $x$ is:
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 3.
     \[
-        \text{(derivation goes here)}
+        h^{*}(x)
+        \;=\; \arg\min_{j \in \mathcal{Y}}\;\bigl[1 - p(y = j \mid x)\bigr]
+        \;=\; \arg\max_{k \in \mathcal{Y}}\; p(y = k \mid x).
     \]
+    Applying this choice for every $x$ and substituting back into
+    \eqref{eq:step1} gives the minimal Bayes risk:
+    \[
+        R(h^{*})
+        \;=\; \E_{x}\!\Bigl[1 - \max_{k \in \mathcal{Y}} p(y = k \mid x)\Bigr],
+    \]
+    known as the \emph{Bayes error rate}.
 \end{proof}
 
 % ── Final Result ──────────────────────────────────────────────────────────────
 \subsection{Final Result}
 
-\begin{theorem}[Optimal Multiclass Decision Rule]
-    % TODO: State the final theorem.
-    Under assumptions \textbf{A1}--\textbf{A3} and a 0-1 loss,
-    the Bayes-optimal decision rule is
+\begin{theorem}[Bayes-Optimal Multiclass Decision Rule]
+    Under assumptions \textbf{A1}--\textbf{A3} with a 0-1 loss, the unique
+    Bayes-optimal decision rule is
     \[
-        % TODO: Replace with the actual result.
-        \hat{y}^{*}(x) \;=\; \arg\max_{k \in \{1,\ldots,\K\}} \; p(y = k \mid x).
+        \boxed{h^{*}(x) \;=\; \arg\max_{k \in \{1,\ldots,K\}} p(y = k \mid x).}
     \]
+    Its Bayes risk equals
+    \(
+        R(h^{*}) = \E_{x}\!\bigl[1 - \max_{k} p(y=k\mid x)\bigr].
+    \)
 \end{theorem}
 
 \begin{proof}
-    Follows directly from Steps 1--3. \qed
+    Follows directly from Steps 1--3.
+    \begin{enumerate}
+        \item (Step~1) $R(h) = \E_{x}[\E_{y|x}[\mathbf{1}\{h(x)\neq y\}]]$,
+              so it suffices to minimise pointwise.
+        \item (Step~2) The pointwise conditional loss equals $1 - p(y = h(x)\mid x)$.
+        \item (Step~3) This is minimised by picking the class with the highest
+              posterior probability, yielding $h^{*}(x) = \arg\max_k p(y=k\mid x)$.\qed
+    \end{enumerate}
 \end{proof}
 
 % ─────────────────────────────────────────────────────────────────────────────

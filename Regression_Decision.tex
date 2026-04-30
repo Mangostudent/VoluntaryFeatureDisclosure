@@ -29,8 +29,8 @@
 % ── Document ─────────────────────────────────────────────────────────────────
 \begin{document}
 
-\title{\textbf{Regression: Decision}\\[0.4em]
-       \large Notes Template}
+\title{\textbf{Regression: Decision Problem}\\[0.4em]
+       \large Strategic Feature Disclosure as a Stackelberg Game}
 \author{}
 \date{}
 \maketitle
@@ -41,99 +41,637 @@
 \section{Problem}
 % ─────────────────────────────────────────────────────────────────────────────
 
-\subsection{Setup}
+\subsection{Motivation and Overview}
 
-% TODO: Describe the regression decision problem here.
-% Example prompts:
-%   - What is the input/output space?
-%   - What loss function is used?
-%   - What decision rule are we trying to derive?
+Standard supervised learning assumes that all relevant features are available at inference time.
+In many real-world settings this is not the case: a \emph{Sender} (e.g.\ a firm reporting to a
+market, a patient reporting to an insurer) can choose which features to disclose.
+Because the Sender has a private preferred outcome that may differ from the ground truth, it
+will disclose only those features that move the prediction closer to its preference.
 
-\begin{definition}[Regression Decision Problem]
-    % TODO: Fill in the formal definition.
-    Let $\mathcal{X} \subseteq \R^{d}$ be the input space and
-    $\mathcal{Y} \subseteq \R$ the output space.
-    Given a learned model $\hat{f}: \mathcal{X} \to \mathcal{Y}$,
-    the decision problem is to \ldots
+The central question of the \textbf{decision problem} is:
+\begin{quote}
+  \emph{Under what conditions on the environment does allowing voluntary (strategic)
+  disclosure produce a strictly lower mean squared error for the Receiver than
+  enforcing mandatory (full) disclosure?}
+\end{quote}
+
+When the Sender's preferred outcome is closely aligned with the ground truth, selective
+disclosure effectively filters out noisy or irrelevant features, benefiting the Receiver.
+When the preferred outcome is far from the ground truth, selective disclosure introduces
+systematic bias and hurts the Receiver.
+The Receiver must therefore account for strategic omissions in its prediction procedure.
+
+\subsection{Players, Spaces, and Randomness}
+
+\begin{definition}[Environment]
+  The environment is the tuple $\mathcal{E} := (U, X, Y, \mathcal{A}, \mathcal{R}, q)$,
+  where:
+  \begin{itemize}
+    \item $\mathcal{X} = \R^{d}$ is the feature space and $\mathcal{Y} = \R$ is the
+          outcome space.
+    \item $(U, X, Y)$ are jointly distributed zero-mean random variables, with
+          $X \in \R^{d}$ the feature vector, $Y \in \R$ the ground-truth value, and
+          $U \in \R$ the Sender's privately preferred outcome.
+    \item $q \in (0,1)$ is a fixed, publicly known \emph{channel erasure probability}.
+    \item $\mathcal{A}$ and $\mathcal{R}$ are the Sender's and Receiver's strategy spaces
+          (defined below).
+  \end{itemize}
+\end{definition}
+
+The two players interact as follows.
+\begin{enumerate}[label=\textbf{P\arabic*.}]
+  \item \textbf{Receiver (leader).}  Before any realization of $(U,X,Y)$ is observed,
+        the Receiver commits to a strategy
+        $r_{b} \in \mathcal{R}$, where
+        \[
+          \mathcal{R}
+          \;:=\;
+          \bigl\{\,r_{b} : r_{b}(\varnothing) = 0,\; r_{b}(x) = b^{\T}x,\; b \in \R^{d}\bigr\}.
+        \]
+        The strategy specifies a \emph{default prediction} of $0$ when no feature is
+        received, and a linear prediction $b^{\T}x$ when the feature vector $x$ is received.
+  \item \textbf{Sender (follower).}  After observing $(U,X)$ and the Receiver's committed
+        strategy $r_{b}$, the Sender chooses an action
+        $A(u,x) \in \{x,\varnothing\}$ (all-or-nothing disclosure):
+        \[
+          \mathcal{A}
+          \;:=\;
+          \bigl\{\,A : \mathcal{Y}\times\mathcal{X} \to \mathcal{X}\cup\{\varnothing\}
+                 \;\big|\;
+                 A(u,x) \in \{x,\varnothing\},\; \forall (u,x)\bigr\}.
+        \]
+\end{enumerate}
+
+\subsection{Noisy Channel}
+
+If the Sender chooses to reveal $x$, the feature is transmitted through an erasure channel:
+\[
+  M\bigl(A(u,x)\bigr)
+  \;=\;
+  \begin{cases}
+    x & \text{with probability } 1-q, \quad \text{if } A(u,x)=x, \\
+    \varnothing & \text{otherwise (deliberate withholding or erasure).}
+  \end{cases}
+\]
+The Receiver observes the channel output $M \in \{\mathcal{X} \cup \{\varnothing\}\}$ but
+\emph{cannot} distinguish a deliberate omission from a random erasure.
+
+\subsection{Losses and Objectives}
+
+Both players use squared loss $\ell(a,b) = (a-b)^{2}$.
+\begin{itemize}
+  \item The \textbf{Sender} incurs $\ell\bigl(u,\, r_{b}(M)\bigr)$ and chooses $A$ to
+        minimise its expected loss given $r_{b}$.
+  \item The \textbf{Receiver} incurs $\ell\bigl(y,\, r_{b}(M)\bigr)$ and chooses $b$ to
+        minimise the resulting MSE.
+\end{itemize}
+
+\subsection{The Two Disclosure Regimes}
+
+\paragraph{Mandatory (vanilla) disclosure.}
+The Sender is forced to always reveal: $A(u,x)\equiv x$.
+The Receiver's risk under any strategy $r_{b}$ is
+\[
+  R_{V}(b,q)
+  \;:=\;
+  (1-q)\,\E\bigl[\ell(Y,b^{\T}X)\bigr]
+  \;+\;
+  q\,\E\bigl[\ell(Y,0)\bigr].
+\]
+The optimal mandatory predictor minimises $R_{V}(b,q)$ over $b$.
+
+\paragraph{Voluntary (strategic) disclosure.}
+The Sender is free to choose $A \in \mathcal{A}$.
+Given $r_{b}$, the Sender plays its best response $A^{*}$, and the Receiver's resulting
+\emph{strategic risk} is
+\[
+  R_{S}(b,q)
+  \;:=\;
+  \E_{(U,X,Y,M)}\!\bigl[\ell\bigl(Y,\,r_{b}(M(A^{*}(U,X;b,q)))\bigr)\bigr].
+\]
+The Receiver then minimises $R_{S}(b,q)$ over $b$, yielding the
+\emph{optimal strategic risk} $R_{S}^{*}(q) := \min_{b} R_{S}(b,q)$.
+
+\subsection{The Stackelberg Equilibrium and Strategic Advantage}
+
+The game is a \emph{Stackelberg game} in which the Receiver leads.
+The pair $(A^{*}, r_{b^{*}})$ that arises from the Receiver's optimal commitment and the
+Sender's best response is called a \textbf{Stackelberg equilibrium}.
+
+\begin{definition}[Strategic Advantage]
+  The \emph{strategic advantage} of voluntary over mandatory disclosure is
+  \[
+    \Delta(\mathcal{E})
+    \;:=\;
+    R_{V}^{*}(q) \;-\; R_{S}^{*}(q),
+  \]
+  where $R_{V}^{*}(q) := \min_{b} R_{V}(b,q)$.
+  Voluntary disclosure is \emph{beneficial} iff $\Delta(\mathcal{E}) > 0$.
 \end{definition}
 
 \subsection{Assumptions}
 
 \begin{enumerate}[label=\textbf{A\arabic*.}]
-    \item % TODO: State assumption 1.
-    \item % TODO: State assumption 2.
-    \item % TODO: Add further assumptions as needed.
+  \item $(U,X,Y)$ are jointly distributed with $\E[U]=\E[X]=\E[Y]=\mathbf{0}$.
+  \item $\mathrm{Var}(X) := \E[XX^{\T}]$ is positive definite (so OLS is well-defined).
+  \item $q \in (0,1)$ is known to both players.
+  \item The Receiver is restricted to linear strategies:
+        $r_{b}(x) = b^{\T}x$, $r_{b}(\varnothing)=0$.
+  \item Ties in the Sender's decision are broken in favour of withholding ($\varnothing$).
 \end{enumerate}
 
-\subsection{Objective}
+\subsection{Objective of the Decision Problem}
 
-% TODO: State the objective (e.g., minimise expected loss, maximise posterior, etc.)
-\[
-    % TODO: Replace with the actual objective.
-    \hat{y} \;=\; \arg\min_{y \in \mathcal{Y}} \; \mathcal{L}(y, \hat{f}(x))
-\]
+Given a fully known environment $\mathcal{E}$, derive:
+\begin{enumerate}[label=(\roman*)]
+  \item closed-form expressions for $R_{V}^{*}(q)$ and $R_{S}^{*}(q)$,
+  \item a \textbf{sufficient condition} on $\mathcal{E}$ guaranteeing $\Delta(\mathcal{E})>0$, and
+  \item a \textbf{necessary condition} that must hold whenever $\Delta(\mathcal{E})>0$.
+\end{enumerate}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Derivation}
 % ─────────────────────────────────────────────────────────────────────────────
 
-The following derivation establishes the optimal decision rule step by step.
+We establish the solution in four steps:
+\begin{enumerate}
+  \item Compute the vanilla risk $R_{V}(b,q)$ and optimise over $b$.
+  \item Characterise the Sender's best response.
+  \item Compute the strategic risk $R_{S}(b,q)$.
+  \item Use the risk difference to derive the sufficient and necessary conditions.
+\end{enumerate}
+
+Throughout, define the shorthand notation
+\[
+  b_{Y}^{*}
+  \;:=\;
+  \mathrm{Var}(X)^{-1}\,\mathrm{Cov}(X,Y),
+  \qquad
+  F_{b}(u,x) := (2u - b^{\T}x)\,b^{\T}x,
+  \qquad
+  G_{b}(x,y) := (2y - b^{\T}x)\,b^{\T}x.
+\]
+$b_{Y}^{*}$ is the ordinary-least-squares (OLS) slope for predicting $Y$ from $X$.
+$F_{b}$ governs the Sender's disclosure decision; $G_{b}$ measures the Receiver's
+gain in squared loss when features are successfully transmitted.
 
 % ── Step 1 ────────────────────────────────────────────────────────────────────
-\subsection{Step 1: [Title]}
+\subsection{Step 1: Vanilla Risk and Its Minimiser}
 
-% TODO: Describe what this step accomplishes.
+\begin{lemma}[Vanilla Risk]\label{lem:vanilla}
+  Under mandatory disclosure, for any $b \in \R^{d}$,
+  \begin{equation}\label{eq:vanilla}
+    R_{V}(b,q)
+    \;=\;
+    \mathrm{Var}(Y)
+    \;-\;
+    (1-q)\,\mathrm{Var}\!\bigl((b_{Y}^{*})^{\T}X\bigr)
+    \;+\;
+    (1-q)\,\mathrm{Var}\!\bigl((b-b_{Y}^{*})^{\T}X\bigr).
+  \end{equation}
+  The optimal vanilla strategy uses slope $b = b_{Y}^{*}$, giving
+  \begin{equation}\label{eq:vanilla-opt}
+    R_{V}^{*}(q)
+    \;=\;
+    \mathrm{Var}(Y)
+    \;-\;
+    (1-q)\,\mathrm{Var}\!\bigl((b_{Y}^{*})^{\T}X\bigr).
+  \end{equation}
+\end{lemma}
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 1.
-    \[
-        % placeholder
-        \text{(derivation goes here)}
-    \]
+Since $A(u,x)\equiv x$, the channel output is $M=x$ with probability $1-q$ and $M=\varnothing$
+with probability $q$.  The expected loss is therefore
+\begin{align}
+  R_{V}(b,q)
+  &= q\,\E\!\bigl[(Y-0)^{2}\bigr]
+     + (1-q)\,\E\!\bigl[(Y-b^{\T}X)^{2}\bigr] \notag\\
+  &= q\,\mathrm{Var}(Y)
+     + (1-q)\,\E\!\bigl[(Y-b^{\T}X)^{2}\bigr]. \label{eq:v1}
+\end{align}
+We expand $\E[(Y-b^{\T}X)^{2}]$ by adding and subtracting the OLS predictor
+$(b_{Y}^{*})^{\T}X$:
+\begin{align}
+  \E\!\bigl[(Y-b^{\T}X)^{2}\bigr]
+  &= \E\!\Bigl[\bigl((Y-(b_{Y}^{*})^{\T}X)
+               + ((b_{Y}^{*})^{\T}X - b^{\T}X)\bigr)^{2}\Bigr] \notag\\
+  &= \E\!\bigl[(Y-(b_{Y}^{*})^{\T}X)^{2}\bigr]
+     + 2\,\E\!\bigl[(Y-(b_{Y}^{*})^{\T}X)((b_{Y}^{*}-b)^{\T}X)\bigr]
+     + \E\!\bigl[((b_{Y}^{*}-b)^{\T}X)^{2}\bigr]. \label{eq:expand}
+\end{align}
+The cross term vanishes by the OLS normal equations: for any $v \in \R^{d}$,
+\[
+  \E\!\bigl[(Y-(b_{Y}^{*})^{\T}X)\,v^{\T}X\bigr]
+  = v^{\T}\bigl(\E[XY] - \mathrm{Var}(X)\,b_{Y}^{*}\bigr)
+  = v^{\T}(\mathrm{Cov}(X,Y) - \mathrm{Cov}(X,Y))
+  = 0.
+\]
+Also, since all variables are zero-mean,
+$\E[(b_{Y}^{*})^{\T}X] = (b_{Y}^{*})^{\T}\E[X] = 0$, so
+\[
+  \E\!\bigl[(Y-(b_{Y}^{*})^{\T}X)^{2}\bigr]
+  = \mathrm{Var}(Y) - \mathrm{Var}((b_{Y}^{*})^{\T}X).
+\]
+Substituting back into \eqref{eq:expand}:
+\[
+  \E\!\bigl[(Y-b^{\T}X)^{2}\bigr]
+  = \mathrm{Var}(Y)
+    - \mathrm{Var}((b_{Y}^{*})^{\T}X)
+    + \mathrm{Var}((b-b_{Y}^{*})^{\T}X).
+\]
+Inserting into \eqref{eq:v1} and collecting:
+\begin{align*}
+  R_{V}(b,q)
+  &= q\,\mathrm{Var}(Y)
+     + (1-q)\Bigl(\mathrm{Var}(Y)
+       - \mathrm{Var}((b_{Y}^{*})^{\T}X)
+       + \mathrm{Var}((b-b_{Y}^{*})^{\T}X)\Bigr)\\
+  &= \mathrm{Var}(Y)
+     - (1-q)\,\mathrm{Var}((b_{Y}^{*})^{\T}X)
+     + (1-q)\,\mathrm{Var}((b-b_{Y}^{*})^{\T}X),
+\end{align*}
+which is \eqref{eq:vanilla}.
+Since the third term is a non-negative variance, $R_{V}(b,q)$ is minimised at
+$b = b_{Y}^{*}$, yielding \eqref{eq:vanilla-opt}.
 \end{proof}
 
 % ── Step 2 ────────────────────────────────────────────────────────────────────
-\subsection{Step 2: [Title]}
+\subsection{Step 2: Sender's Best Response}
 
-% TODO: Describe what this step accomplishes.
+\begin{lemma}[Sender's Best Response]\label{lem:sender}
+  For a given Receiver strategy $r_{b}$, the Sender's best response satisfies
+  \[
+    A^{*}(u,x) = x
+    \quad\iff\quad
+    F_{b}(u,x) := (2u - b^{\T}x)\,b^{\T}x > 0.
+  \]
+\end{lemma}
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 2.
-    \begin{align}
-        % TODO: align environment for multi-line algebra.
-        &\text{(left-hand side)} \notag \\
-        &= \text{(right-hand side)} \label{eq:step2}
-    \end{align}
+For a fixed $(u,x)$, the Sender compares the expected loss of each action:
+\begin{align*}
+  \E_{M}\!\bigl[\ell(u,r_{b}(M))\,\big|\,A=\varnothing\bigr]
+  &= (u-0)^{2} = u^{2},\\
+  \E_{M}\!\bigl[\ell(u,r_{b}(M))\,\big|\,A=x\bigr]
+  &= (1-q)(u-b^{\T}x)^{2} + q\,u^{2}.
+\end{align*}
+The Sender prefers to reveal ($A^{*}=x$) when the second quantity is strictly less
+than the first:
+\begin{align*}
+  (1-q)(u-b^{\T}x)^{2} + q\,u^{2} &< u^{2}\\
+  (1-q)(u-b^{\T}x)^{2} &< (1-q)\,u^{2}\\
+  (u-b^{\T}x)^{2} &< u^{2}
+    \qquad\text{(dividing by }1-q>0\text{)}\\
+  u^{2} - 2u\,b^{\T}x + (b^{\T}x)^{2} &< u^{2}\\
+  (b^{\T}x)^{2} - 2u\,b^{\T}x &< 0\\
+  b^{\T}x\,(b^{\T}x - 2u) &< 0\\
+  (2u - b^{\T}x)\,b^{\T}x &> 0.
+\end{align*}
+This is exactly $F_{b}(u,x)>0$.
+Ties ($F_{b}=0$) are broken in favour of withholding by Assumption A5.
 \end{proof}
+
+\begin{remark}
+  $F_{b}(u,x)>0$ holds when $b^{\T}x$ lies strictly between $0$ and $2u$, i.e.\ when the
+  linear prediction $b^{\T}x$ is ``between'' the default $0$ and twice the Sender's preferred
+  value.  Intuitively, the Sender discloses only when doing so moves the prediction closer to
+  its preferred outcome $u$.
+\end{remark}
 
 % ── Step 3 ────────────────────────────────────────────────────────────────────
-\subsection{Step 3: [Title]}
+\subsection{Step 3: Strategic Risk}
 
-% TODO: Describe what this step accomplishes.
+\begin{lemma}[Strategic Risk]\label{lem:strategic}
+  Given a Receiver strategy $r_{b}$, under the Sender's best response $A^{*}$, the
+  strategic risk is
+  \begin{equation}\label{eq:strategic}
+    R_{S}(b,q)
+    \;=\;
+    \mathrm{Var}(Y)
+    \;-\;
+    (1-q)\,\E\!\bigl[G_{b}(X,Y)\,\mathbf{1}\{F_{b}(U,X)>0\}\bigr].
+  \end{equation}
+\end{lemma}
 
 \begin{proof}
-    % TODO: Fill in the proof for Step 3.
-    \[
-        \text{(derivation goes here)}
-    \]
+The Receiver's prediction depends on the channel output:
+\[
+  r_{b}(M) =
+  \begin{cases}
+    b^{\T}X & \text{if } F_{b}(U,X)>0 \text{ (Sender reveals) and channel succeeds (prob.\ }1-q),\\
+    0        & \text{otherwise (Sender withholds, or channel erases).}
+  \end{cases}
+\]
+Expanding the expectation over all cases:
+\begin{align}
+  R_{S}(b,q)
+  &= \E\!\Bigl[\mathbf{1}\{F_{b}\le 0\}\,Y^{2}
+              + \mathbf{1}\{F_{b}>0\}\Bigl(q\,Y^{2}
+                +(1-q)(Y-b^{\T}X)^{2}\Bigr)\Bigr] \notag\\
+  &= \E[Y^{2}]
+     - (1-q)\,\E\!\bigl[\mathbf{1}\{F_{b}>0\}
+       \underbrace{\bigl(Y^{2}-(Y-b^{\T}X)^{2}\bigr)}_{=\,G_{b}(X,Y)}\bigr]. \label{eq:s1}
+\end{align}
+We verify the identity for $G_{b}$:
+\[
+  Y^{2} - (Y-b^{\T}X)^{2}
+  = Y^{2} - Y^{2} + 2Y\,b^{\T}X - (b^{\T}X)^{2}
+  = (2Y - b^{\T}X)\,b^{\T}X
+  = G_{b}(X,Y).
+\]
+Since all variables are zero-mean, $\E[Y^{2}]=\mathrm{Var}(Y)$.
+Substituting into \eqref{eq:s1} gives \eqref{eq:strategic}.
 \end{proof}
 
-% ── Final Result ──────────────────────────────────────────────────────────────
-\subsection{Final Result}
+\begin{remark}
+  The gain function $G_{b}(x,y) = (2y-b^{\T}x)\,b^{\T}x = y^{2}-(y-b^{\T}x)^{2}$
+  is the reduction in the Receiver's squared loss when the feature is successfully
+  transmitted relative to when it is not.
+  A high value of $G_{b}$ means the feature is very informative for predicting $Y$.
+\end{remark}
 
-\begin{theorem}[Optimal Regression Decision Rule]
-    % TODO: State the final theorem.
-    Under assumptions \textbf{A1}--\textbf{A3}, the optimal decision rule is
-    \[
-        % TODO: Replace with the actual result.
-        \hat{y}^{*} \;=\; \hat{f}(x).
-    \]
+% ── Step 4 ────────────────────────────────────────────────────────────────────
+\subsection{Step 4: Risk Difference and Key Intermediate Identity}
+
+Subtracting the strategic risk from the optimal vanilla risk:
+\begin{align}
+  R_{S}(b,q) - R_{V}^{*}(q)
+  &= \Bigl[\mathrm{Var}(Y)-(1-q)\,\E[G_{b}\,\mathbf{1}\{F_{b}>0\}]\Bigr]
+     - \Bigl[\mathrm{Var}(Y)-(1-q)\,\mathrm{Var}((b_{Y}^{*})^{\T}X)\Bigr] \notag\\
+  &= (1-q)\Bigl[\mathrm{Var}((b_{Y}^{*})^{\T}X)
+               - \E[G_{b}\,\mathbf{1}\{F_{b}>0\}]\Bigr]. \label{eq:diff}
+\end{align}
+For voluntary disclosure to be beneficial we need this to be strictly negative, i.e.\
+\begin{equation}\label{eq:want}
+  \E\!\bigl[G_{b}(X,Y)\,\mathbf{1}\{F_{b}(U,X)>0\}\bigr]
+  \;>\;
+  \mathrm{Var}\!\bigl((b_{Y}^{*})^{\T}X\bigr).
+\end{equation}
+
+\textbf{Decomposing $\E[G_{b}\,\mathbf{1}\{F_{b}>0\}]$.}
+Write
+\[
+  \E[G_{b}\,\mathbf{1}\{F_{b}>0\}]
+  = \E[G_{b}] - \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}].
+\]
+We compute $\E[G_{b}]$ first.  Since $G_{b} = (2Y-b^{\T}X)\,b^{\T}X$,
+\begin{align}
+  \E[G_{b}]
+  &= 2\,\E[Y\,b^{\T}X] - \E[(b^{\T}X)^{2}] \notag\\
+  &= 2\,b^{\T}\mathrm{Cov}(X,Y) - \mathrm{Var}(b^{\T}X). \label{eq:EG}
+\end{align}
+Using $b_{Y}^{*} = \mathrm{Var}(X)^{-1}\mathrm{Cov}(X,Y)$, so
+$\mathrm{Cov}(X,Y) = \mathrm{Var}(X)\,b_{Y}^{*}$:
+\begin{align*}
+  b^{\T}\mathrm{Cov}(X,Y)
+  &= b^{\T}\mathrm{Var}(X)\,b_{Y}^{*},\\
+  \mathrm{Var}(b^{\T}X)
+  &= b^{\T}\mathrm{Var}(X)\,b.
+\end{align*}
+Moreover, $\mathrm{Var}((b-b_{Y}^{*})^{\T}X) = (b-b_{Y}^{*})^{\T}\mathrm{Var}(X)(b-b_{Y}^{*})$,
+which expands to
+\[
+  \mathrm{Var}(b^{\T}X) - 2\,b^{\T}\mathrm{Var}(X)\,b_{Y}^{*}
+  + \mathrm{Var}((b_{Y}^{*})^{\T}X).
+\]
+Rearranging:
+\[
+  2\,b^{\T}\mathrm{Var}(X)\,b_{Y}^{*}
+  = \mathrm{Var}(b^{\T}X)
+    + \mathrm{Var}((b_{Y}^{*})^{\T}X)
+    - \mathrm{Var}((b-b_{Y}^{*})^{\T}X).
+\]
+Substituting into \eqref{eq:EG}:
+\begin{align}
+  \E[G_{b}]
+  &= \mathrm{Var}(b^{\T}X)
+     + \mathrm{Var}((b_{Y}^{*})^{\T}X)
+     - \mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+     - \mathrm{Var}(b^{\T}X) \notag\\
+  &= \mathrm{Var}((b_{Y}^{*})^{\T}X)
+     - \mathrm{Var}((b-b_{Y}^{*})^{\T}X). \label{eq:EGsimple}
+\end{align}
+
+\textbf{Bounding $\E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]$.}
+Decompose the region $\{F_{b}\le 0\}$ into
+$\{G_{b}\le 0\}\cup(\{F_{b}\le 0\}\cap\{G_{b}>0\})$:
+\begin{equation}\label{eq:EGneg}
+  \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]
+  = \E[G_{b}\,\mathbf{1}\{G_{b}\le 0\}]
+    + \E[G_{b}\,\mathbf{1}\{\mathrm{sign}(F_{b})\ne\mathrm{sign}(G_{b})\}].
+\end{equation}
+For the first term, using $\mathbf{1}\{G_{b}\le 0\} = (1-\mathrm{sign}(G_{b}))/2$ (in a
+distributional sense) and the identity $\E[|Z|] = 2\,\E[Z\,\mathbf{1}\{Z>0\}]-\E[Z]$:
+\[
+  \E[G_{b}\,\mathbf{1}\{G_{b}\le 0\}]
+  = -\tfrac{1}{2}\,\E\!\bigl[|G_{b}| - G_{b}\bigr]
+  = \tfrac{1}{2}\bigl(\E[G_{b}] - \E[|G_{b}|]\bigr).
+\]
+For the second term in \eqref{eq:EGneg}, we use that whenever
+$\mathrm{sign}(F_{b})\ne\mathrm{sign}(G_{b})$, it holds that $|G_{b}|<|G_{b}-F_{b}|$.
+Computing $G_{b}-F_{b}$:
+\[
+  G_{b}(x,y) - F_{b}(u,x)
+  = (2y-b^{\T}x)\,b^{\T}x - (2u-b^{\T}x)\,b^{\T}x
+  = 2(y-u)\,b^{\T}x,
+\]
+so $|G_{b}-F_{b}| = 2|y-u|\,|b^{\T}x|$.  Applying the Cauchy--Schwarz inequality:
+\begin{align*}
+  \E\!\bigl[G_{b}\,\mathbf{1}\{\mathrm{sign}(F_{b})\ne\mathrm{sign}(G_{b})\}\bigr]
+  &\le \E\!\bigl[|G_{b}-F_{b}|\bigr]
+   = 2\,\E\!\bigl[|Y-U|\,|b^{\T}X|\bigr]\\
+  &\le 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)},
+\end{align*}
+where $\norm{Y-U}_{2} := \sqrt{\mathrm{Var}(Y)+\mathrm{Var}(U)-2\,\mathrm{Cov}(U,Y)}$.
+
+Combining:
+\begin{equation}\label{eq:EGneg-bound}
+  \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]
+  \;\le\;
+  \tfrac{1}{2}\bigl(\E[G_{b}]-\E[|G_{b}|]\bigr)
+  + 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)}.
+\end{equation}
+
+Therefore:
+\begin{align}
+  \E[G_{b}\,\mathbf{1}\{F_{b}>0\}]
+  &= \E[G_{b}] - \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}] \notag\\
+  &\ge \E[G_{b}] - \tfrac{1}{2}\bigl(\E[G_{b}]-\E[|G_{b}|]\bigr)
+       - 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)} \notag\\
+  &= \tfrac{1}{2}\bigl(\E[G_{b}]+\E[|G_{b}|]\bigr)
+     - 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)}. \label{eq:EGpos-lb}
+\end{align}
+
+Substituting \eqref{eq:EGsimple} into \eqref{eq:EGpos-lb}:
+\begin{align}
+  \E[G_{b}\,\mathbf{1}\{F_{b}>0\}]
+  &\ge
+  \tfrac{1}{2}\Bigl(\mathrm{Var}((b_{Y}^{*})^{\T}X)
+                   -\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+                   +\E[|G_{b}|]\Bigr)
+  - 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)}. \label{eq:lb2}
+\end{align}
+
+% ── Final Result ──────────────────────────────────────────────────────────────
+\subsection{Sufficient Condition for Strategic Advantage}
+
+\begin{theorem}[Sufficient Condition]\label{thm:suff}
+  A strategic advantage $\Delta(\mathcal{E})>0$ exists if there exists $b\in\R^{d}$ such that
+  \begin{equation}\label{eq:suff}
+    \norm{Y-U}_{2}
+    \;<\;
+    \frac{\E[|G_{b}(X,Y)|] - \mathrm{Var}((b_{Y}^{*})^{\T}X)}{4\sqrt{\mathrm{Var}(b^{\T}X)}}
+    \;-\;
+    \frac{\mathrm{Var}((b-b_{Y}^{*})^{\T}X)}{4\sqrt{\mathrm{Var}(b^{\T}X)}}.
+  \end{equation}
 \end{theorem}
 
 \begin{proof}
-    % TODO: Combine the steps above into a complete proof.
-    Follows directly from Steps 1--3. \qed
+We need to show \eqref{eq:want}, i.e.\
+$\E[G_{b}\,\mathbf{1}\{F_{b}>0\}] > \mathrm{Var}((b_{Y}^{*})^{\T}X)$.
+Using the lower bound \eqref{eq:lb2}, it suffices to have
+\[
+  \tfrac{1}{2}\Bigl(\mathrm{Var}((b_{Y}^{*})^{\T}X)
+                   -\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+                   +\E[|G_{b}|]\Bigr)
+  - 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)}
+  > \mathrm{Var}((b_{Y}^{*})^{\T}X).
+\]
+Rearranging:
+\begin{align*}
+  \tfrac{1}{2}\E[|G_{b}|]
+  - \tfrac{1}{2}\mathrm{Var}((b_{Y}^{*})^{\T}X)
+  - \tfrac{1}{2}\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+  &> 2\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)},\\
+  \E[|G_{b}|] - \mathrm{Var}((b_{Y}^{*})^{\T}X) - \mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+  &> 4\,\norm{Y-U}_{2}\,\sqrt{\mathrm{Var}(b^{\T}X)}.
+\end{align*}
+Dividing both sides by $4\sqrt{\mathrm{Var}(b^{\T}X)}>0$ yields \eqref{eq:suff}.
+
+Whenever \eqref{eq:suff} holds, we have $\E[G_{b}\,\mathbf{1}\{F_{b}>0\}]>\mathrm{Var}((b_{Y}^{*})^{\T}X)$,
+which by \eqref{eq:diff} gives $R_{S}(b,q)<R_{V}^{*}(q)$, and therefore
+$R_{S}^{*}(q)\le R_{S}(b,q) < R_{V}^{*}(q)$, i.e.\ $\Delta(\mathcal{E})>0$.
 \end{proof}
+
+\begin{remark}
+  The sufficient condition \eqref{eq:suff} does not depend on $q$.
+  The channel noise $q$ controls only the \emph{magnitude} of the strategic advantage through
+  the factor $(1-q)$ in \eqref{eq:diff}, but never changes its sign.
+  Therefore voluntary disclosure is advantageous for \emph{all} noise levels once
+  \eqref{eq:suff} is satisfied at any $b$.
+\end{remark}
+
+\subsection{Necessary Condition for Strategic Advantage}
+
+\begin{theorem}[Necessary Condition]\label{thm:nec}
+  A necessary condition for $\Delta(\mathcal{E})>0$ is that there exists $b\in\R^{d}$ such
+  that
+  \begin{equation}\label{eq:nec}
+    \E\!\bigl[|G_{b}(X,Y)|\bigr]
+    \;-\;
+    \mathrm{Var}\!\bigl((b_{Y}^{*})^{\T}X\bigr)
+    \;-\;
+    \mathrm{Var}\!\bigl((b-b_{Y}^{*})^{\T}X\bigr)
+    \;>\;
+    0.
+  \end{equation}
+\end{theorem}
+
+\begin{proof}
+We show the contrapositive: if \eqref{eq:nec} fails for every $b$, then
+$R_{S}(b,q) \ge R_{V}^{*}(q)$ for every $b$, so $\Delta(\mathcal{E}) \le 0$.
+
+From \eqref{eq:diff} and \eqref{eq:EGsimple}:
+\begin{equation}\label{eq:exact}
+  R_{S}(b,q) - R_{V}^{*}(q)
+  = (1-q)\Bigl[\mathrm{Var}((b_{Y}^{*})^{\T}X)
+               -\E[G_{b}]+\E[G_{b}]-\E[G_{b}\,\mathbf{1}\{F_{b}>0\}]\Bigr].
+\end{equation}
+Substituting \eqref{eq:EGsimple}:
+\[
+  R_{S}(b,q) - R_{V}^{*}(q)
+  = (1-q)\Bigl[\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+               + \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]\Bigr].
+\]
+We lower-bound $\E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]$.
+On the region $\{F_{b}\le 0\}$ consider only the sub-region $\{G_{b}\le 0\}
+\subseteq\{F_{b}\le 0\}$ (since the Sender withholds when $F_{b}\le 0$, in particular
+whenever $G_{b}\le 0$):
+\[
+  \E[G_{b}\,\mathbf{1}\{F_{b}\le 0\}]
+  \ge \E[G_{b}\,\mathbf{1}\{G_{b}\le 0\}]
+  = \tfrac{1}{2}(\E[G_{b}]-\E[|G_{b}|]).
+\]
+Therefore:
+\begin{align}
+  R_{S}(b,q) - R_{V}^{*}(q)
+  &\ge (1-q)\Bigl[\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+                 + \tfrac{1}{2}(\E[G_{b}]-\E[|G_{b}|])\Bigr] \notag\\
+  &= \frac{1-q}{2}\Bigl[2\,\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+                        + \E[G_{b}] - \E[|G_{b}|]\Bigr] \notag\\
+  &= \frac{1-q}{2}\Bigl[\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+                        + \mathrm{Var}((b_{Y}^{*})^{\T}X)
+                        - \E[|G_{b}|] \notag\\
+                       &\qquad\qquad
+                        + \mathrm{Var}((b-b_{Y}^{*})^{\T}X)\Bigr], \label{eq:lb-nec}
+\end{align}
+where in the last step we used \eqref{eq:EGsimple}.
+Simplifying:
+\[
+  R_{S}(b,q) - R_{V}^{*}(q)
+  \ge \frac{1-q}{2}\Bigl[
+    \mathrm{Var}((b_{Y}^{*})^{\T}X)
+    + 2\,\mathrm{Var}((b-b_{Y}^{*})^{\T}X)
+    - \E[|G_{b}|]
+  \Bigr].
+\]
+If the necessary condition \eqref{eq:nec} fails for every $b$, then for every $b$:
+\[
+  \E[|G_{b}|] \le \mathrm{Var}((b_{Y}^{*})^{\T}X) + \mathrm{Var}((b-b_{Y}^{*})^{\T}X),
+\]
+which implies the bracket above is
+$\ge \mathrm{Var}((b-b_{Y}^{*})^{\T}X)\ge 0$.
+Hence $R_{S}(b,q)\ge R_{V}^{*}(q)$ for all $b$, and $\Delta(\mathcal{E})\le 0$.
+\end{proof}
+
+\begin{remark}
+  The necessary condition \eqref{eq:nec} requires the ``positive part'' of the gain function
+  $G_{b}$ to be sufficiently large relative to the variance of the optimal OLS prediction and
+  the excess variance from deviating from $b_{Y}^{*}$.
+  Equivalently, using $\E[G_{b}]=\mathrm{Var}((b_{Y}^{*})^{\T}X)-\mathrm{Var}((b-b_{Y}^{*})^{\T}X)$,
+  condition \eqref{eq:nec} is
+  \[
+    \E[|G_{b}|] > \E[G_{b}]
+    \;\iff\;
+    \Pr(G_{b}(X,Y)<0) > 0,
+  \]
+  i.e.\ there must be some probability of the feature being \emph{harmful} to the Receiver
+  under mandatory disclosure.  If $G_{b}\ge 0$ almost surely for every $b$, voluntary
+  disclosure can never help.
+\end{remark}
+
+\subsection{Summary of Results}
+
+\begin{theorem}[Stackelberg Equilibrium and Strategic Advantage]\label{thm:main}
+  Under Assumptions A1--A5, and with the shorthand
+  $b_{Y}^{*}=\mathrm{Var}(X)^{-1}\mathrm{Cov}(X,Y)$,
+  $G_{b}(x,y)=(2y-b^{\T}x)b^{\T}x$, $\norm{Y-U}_{2}=\sqrt{\mathrm{Var}(Y)+\mathrm{Var}(U)-2\,\mathrm{Cov}(U,Y)}$:
+  \begin{enumerate}[label=\normalfont(\roman*)]
+    \item \emph{Vanilla risk:}
+          $R_{V}^{*}(q) = \mathrm{Var}(Y) - (1-q)\,\mathrm{Var}((b_{Y}^{*})^{\T}X).$
+    \item \emph{Sender's best response:}
+          $A^{*}(u,x)=x \iff (2u-b^{\T}x)b^{\T}x>0.$
+    \item \emph{Strategic risk:}
+          $R_{S}(b,q) = \mathrm{Var}(Y)-(1-q)\,\E[G_{b}(X,Y)\,\mathbf{1}\{F_{b}(U,X)>0\}].$
+    \item \emph{Sufficient condition} for $\Delta(\mathcal{E})>0$: \eqref{eq:suff} holds for
+          some $b$.
+    \item \emph{Necessary condition} for $\Delta(\mathcal{E})>0$: \eqref{eq:nec} holds for
+          some $b$.
+    \item Both conditions are \emph{independent of} $q$; channel noise only scales the
+          magnitude of $\Delta(\mathcal{E})$.
+  \end{enumerate}
+\end{theorem}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \end{document}
